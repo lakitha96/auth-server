@@ -17,8 +17,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 
 /**
  * @author Lakitha Prabudh on 5/11/20
@@ -68,6 +72,13 @@ public class AuthenticationConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .anonymous()
                 .and()
+                .cors().configurationSource(request -> {
+                    CorsConfiguration cors = new CorsConfiguration();
+                    cors.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
+                    cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    cors.setAllowedHeaders(Arrays.asList("*"));
+                    return cors;
+                }).and()
                 .exceptionHandling().authenticationEntryPoint(
                 (req, rsp, e) -> rsp.sendError(HttpServletResponse.SC_UNAUTHORIZED))
                 .and()
@@ -78,7 +89,7 @@ public class AuthenticationConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(ExampleParam.URL).permitAll()
                 .antMatchers("/register").permitAll()
-                .antMatchers(HttpMethod.GET, "/hello").hasAnyRole(ExampleParam.USER_NORMAL,ExampleParam.USER_ADMIN);
+                .antMatchers(HttpMethod.GET, "/hello").hasAnyRole(ExampleParam.USER_NORMAL, ExampleParam.USER_ADMIN);
     }
 
     private PasswordEncoder getPasswordEncoder() {
@@ -93,5 +104,15 @@ public class AuthenticationConfig extends WebSecurityConfigurerAdapter {
                 return bCryptPasswordEncoder.matches(charSequence, s);
             }
         };
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
